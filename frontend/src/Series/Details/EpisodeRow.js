@@ -87,6 +87,12 @@ class EpisodeRow extends Component {
       columns
     } = this.props;
 
+    // The Formats column already lists every matching format, so the
+    // Always Show tags would only repeat it while that column is visible.
+    const isFormatsColumnVisible = columns.some(
+      (column) => column.name === 'customFormats' && column.isVisible
+    );
+
     return (
       <TableRow>
         {
@@ -155,7 +161,7 @@ class EpisodeRow extends Component {
                     />
 
                     {
-                      alwaysShowFormats.length ?
+                      alwaysShowFormats.length && !isFormatsColumnVisible ?
                         <div className={styles.alwaysShowFormats}>
                           <EpisodeFormats formats={alwaysShowFormats} />
                         </div> :
