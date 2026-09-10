@@ -223,6 +223,19 @@ class EditQualityProfileModalContentConnector extends Component {
     });
   };
 
+  onQualityProfileFormatItemAlwaysShowChange = (id, alwaysShow) => {
+    const qualityProfile = _.cloneDeep(this.props.item);
+    const formatItems = qualityProfile.formatItems.value;
+    const item = _.find(qualityProfile.formatItems.value, (i) => i.format === id);
+
+    item.alwaysShow = alwaysShow;
+
+    this.props.setQualityProfileValue({
+      name: 'formatItems',
+      value: formatItems
+    });
+  };
+
   onItemGroupAllowedChange = (id, allowed) => {
     const qualityProfile = _.cloneDeep(this.props.item);
     const items = qualityProfile.items.value;
@@ -466,6 +479,7 @@ class EditQualityProfileModalContentConnector extends Component {
         onQualityProfileItemDragMove={this.onQualityProfileItemDragMove}
         onQualityProfileItemDragEnd={this.onQualityProfileItemDragEnd}
         onQualityProfileFormatItemScoreChange={this.onQualityProfileFormatItemScoreChange}
+        onQualityProfileFormatItemAlwaysShowChange={this.onQualityProfileFormatItemAlwaysShowChange}
         onToggleEditGroupsMode={this.onToggleEditGroupsMode}
       />
     );

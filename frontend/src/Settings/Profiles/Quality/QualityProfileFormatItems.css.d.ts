@@ -3,6 +3,7 @@
 interface CssExports {
   'addCustomFormatMessage': string;
   'formats': string;
+  'headerAlwaysShow': string;
   'headerContainer': string;
   'headerScore': string;
   'headerTitle': string;

@@ -43,3 +43,19 @@
   border-radius: unset;
   background-color: unset;
 }
+
+.alwaysShowContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  flex-grow: 0;
+  width: 110px;
+  user-select: none;
+}
+
+.alwaysShowInput {
+  composes: input from '~Components/Form/CheckInput.css';
+
+  margin-top: 5px;
+  margin-right: 0;
+}

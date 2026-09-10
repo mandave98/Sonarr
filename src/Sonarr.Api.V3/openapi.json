@@ -10631,6 +10631,10 @@
           "score": {
             "type": "integer",
             "format": "int32"
+          },
+          "alwaysShow": {
+            "type": "boolean",
+            "nullable": true
           }
         },
         "additionalProperties": false

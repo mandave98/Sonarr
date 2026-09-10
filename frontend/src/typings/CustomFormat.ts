@@ -4,6 +4,7 @@ export interface QualityProfileFormatItem {
   format: number;
   name: string;
   score: number;
+  alwaysShow: boolean;
 }
 
 interface CustomFormat extends ModelBase {

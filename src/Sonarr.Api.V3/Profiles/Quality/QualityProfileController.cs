@@ -64,6 +64,8 @@ namespace Sonarr.Api.V3.Profiles.Quality
         {
             var model = resource.ToModel();
 
+            model.PreserveOmittedAlwaysShow(resource, _profileService.Get(model.Id));
+
             _profileService.Update(model);
 
             return Accepted(model.Id);

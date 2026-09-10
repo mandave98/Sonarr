@@ -50,6 +50,10 @@ class QualityProfileFormatItems extends Component {
     this.reorderItems();
   };
 
+  onAlwaysShowChange = (formatId, value) => {
+    this.props.onQualityProfileFormatItemAlwaysShowChange(formatId, value);
+  };
+
   reorderItems = _.debounce(() => this.setState({ order: calcOrder(this.props.profileFormatItems) }), 1000);
 
   //
@@ -81,6 +85,10 @@ class QualityProfileFormatItems extends Component {
         <div>
           <FormInputHelpText
             text={translate('CustomFormatHelpText')}
+          />
+
+          <FormInputHelpText
+            text={translate('CustomFormatAlwaysShowHelpText')}
           />
 
           {
@@ -117,13 +125,17 @@ class QualityProfileFormatItems extends Component {
               <div className={styles.headerScore}>
                 {translate('Score')}
               </div>
+              <div className={styles.headerAlwaysShow}>
+                {translate('CustomFormatAlwaysShow')}
+              </div>
             </div>
             {
               order.map((index) => {
                 const {
                   format,
                   name,
-                  score
+                  score,
+                  alwaysShow
                 } = profileFormatItems[index];
                 return (
                   <QualityProfileFormatItem
@@ -131,7 +143,9 @@ class QualityProfileFormatItems extends Component {
                     formatId={format}
                     name={name}
                     score={score}
+                    alwaysShow={alwaysShow}
                     onScoreChange={this.onScoreChange}
+                    onAlwaysShowChange={this.onAlwaysShowChange}
                   />
                 );
               })
@@ -147,7 +161,8 @@ QualityProfileFormatItems.propTypes = {
   profileFormatItems: PropTypes.arrayOf(PropTypes.object).isRequired,
   errors: PropTypes.arrayOf(PropTypes.object),
   warnings: PropTypes.arrayOf(PropTypes.object),
-  onQualityProfileFormatItemScoreChange: PropTypes.func
+  onQualityProfileFormatItemScoreChange: PropTypes.func,
+  onQualityProfileFormatItemAlwaysShowChange: PropTypes.func
 };
 
 QualityProfileFormatItems.defaultProps = {

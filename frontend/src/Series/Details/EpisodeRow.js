@@ -80,6 +80,7 @@ class EpisodeRow extends Component {
       episodeFileSize,
       releaseGroup,
       customFormats,
+      alwaysShowFormats,
       customFormatScore,
       indexerFlags,
       alternateTitles,
@@ -143,14 +144,24 @@ class EpisodeRow extends Component {
                   key={name}
                   className={styles.title}
                 >
-                  <EpisodeTitleLink
-                    episodeId={id}
-                    seriesId={seriesId}
-                    episodeTitle={title}
-                    episodeEntity="episodes"
-                    finaleType={finaleType}
-                    showOpenSeriesButton={false}
-                  />
+                  <div className={styles.titleContainer}>
+                    <EpisodeTitleLink
+                      episodeId={id}
+                      seriesId={seriesId}
+                      episodeTitle={title}
+                      episodeEntity="episodes"
+                      finaleType={finaleType}
+                      showOpenSeriesButton={false}
+                    />
+
+                    {
+                      alwaysShowFormats.length ?
+                        <div className={styles.alwaysShowFormats}>
+                          <EpisodeFormats formats={alwaysShowFormats} />
+                        </div> :
+                        null
+                    }
+                  </div>
                 </TableRowCell>
               );
             }
@@ -405,6 +416,7 @@ EpisodeRow.propTypes = {
   episodeFileSize: PropTypes.number,
   releaseGroup: PropTypes.string,
   customFormats: PropTypes.arrayOf(PropTypes.object),
+  alwaysShowFormats: PropTypes.arrayOf(PropTypes.object),
   customFormatScore: PropTypes.number.isRequired,
   indexerFlags: PropTypes.number.isRequired,
   mediaInfo: PropTypes.object,
@@ -415,6 +427,7 @@ EpisodeRow.propTypes = {
 
 EpisodeRow.defaultProps = {
   alternateTitles: [],
+  alwaysShowFormats: [],
   customFormats: [],
   indexerFlags: 0
 };

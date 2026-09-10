@@ -279,6 +279,8 @@
   "CustomFilter": "Custom Filter",
   "CustomFilters": "Custom Filters",
   "CustomFormat": "Custom Format",
+  "CustomFormatAlwaysShow": "Always Show",
+  "CustomFormatAlwaysShowHelpText": "Formats checked under Always Show are displayed as tags next to episodes for series using this profile, when the episode's file matches them.",
   "CustomFormatHelpText": "{appName} scores each release using the sum of scores for matching custom formats. If a new release would improve the score, at the same or better quality, then {appName} will grab it.",
   "CustomFormatJson": "Custom Format JSON",
   "CustomFormatScore": "Custom Format Score",

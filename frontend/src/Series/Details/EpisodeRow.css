@@ -68,3 +68,12 @@
 
   width: 50px;
 }
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+}
+
+.alwaysShowFormats {
+  margin-left: 10px;
+}
