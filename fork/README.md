@@ -156,9 +156,13 @@ to the workflow. The test stage runs first; a failing test blocks the push.
 Upstream's own workflows only trigger on `develop` and `main`, so they stay
 idle on this branch.
 
-The package is created private on the first run. Make it public once in the
-package settings on GitHub, or `docker login ghcr.io` on the Sonarr host with
-a token that has `read:packages`.
+The package inherits the repository's visibility, and this fork is public,
+so the tags pull anonymously from any host. If the repository ever goes
+private, either make the package public in its settings on GitHub or
+`docker login ghcr.io` on the Sonarr host with a token that has
+`read:packages`.
+
+First run: about ten minutes, unit tests included.
 
 To push a locally built image by hand instead:
 
