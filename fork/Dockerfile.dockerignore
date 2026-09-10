@@ -1,0 +1,9 @@
+# Applies to `docker build -f fork/Dockerfile .` (BuildKit picks up <Dockerfile>.dockerignore).
+# .git is intentionally kept: SourceLink runs during the build and warnings are errors.
+node_modules
+_output
+_artifacts
+_tests
+_temp
+src/**/bin
+src/**/obj
