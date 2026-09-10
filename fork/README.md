@@ -140,7 +140,27 @@ purpose: SourceLink runs during the build and warnings are errors there.
 The image is roughly twice the size of the stock one because the stock
 `/app/sonarr/bin` layer is still underneath ours. Harmless, just not pretty.
 
-To keep the image somewhere other than the build machine:
+### Published automatically
+
+`.github/workflows/fork-image.yml` builds the same Dockerfile on every push to
+`feature/always-show-custom-formats` (and on manual dispatch) and pushes it to
+GitHub Container Registry as:
+
+- `ghcr.io/mandave98/sonarr-fork:<sonarr version>`
+- `ghcr.io/mandave98/sonarr-fork:<sonarr version>-<short sha>`
+- `ghcr.io/mandave98/sonarr-fork:latest`
+
+The Sonarr version comes from `git describe` (the upstream tag the branch is
+based on) and the SDK version from `global.json`, so a rebase needs no edits
+to the workflow. The test stage runs first; a failing test blocks the push.
+Upstream's own workflows only trigger on `develop` and `main`, so they stay
+idle on this branch.
+
+The package is created private on the first run. Make it public once in the
+package settings on GitHub, or `docker login ghcr.io` on the Sonarr host with
+a token that has `read:packages`.
+
+To push a locally built image by hand instead:
 
 ```bash
 docker tag sonarr-fork:4.0.19.2979 ghcr.io/mandave98/sonarr-fork:4.0.19.2979
