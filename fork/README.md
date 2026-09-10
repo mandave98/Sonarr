@@ -196,6 +196,14 @@ Two known quirks at this tag, neither caused by the fork:
 Running any of this on the Windows host is unreliable: the machine's .NET SDK
 does not match `global.json`, and yarn refuses to install under Node 24.
 
+`fork/smoke-test.sh <image>` starts a throwaway container from the built
+image and drives the API end to end: the container boots and reports the
+fork package info, the two new translation strings are served, a custom
+format is created, the profile picks it up with `alwaysShow: false`, a PUT
+with `true` sticks, a PUT that omits the field (what Recyclarr sends) keeps
+`true`, and an explicit `false` clears it. It needs docker, curl and node;
+see the header of the script for the Windows Git Bash incantation.
+
 Manual check after deploying:
 
 1. Settings > Profiles > edit a profile, tick **Always Show** on a format,
