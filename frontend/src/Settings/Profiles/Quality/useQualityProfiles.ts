@@ -12,6 +12,8 @@ export interface QualityProfileFormatItem {
   format: number;
   name: string;
   score: number;
+  // Fork: show this format as a tag on episode rows when it matches the file
+  alwaysShow: boolean;
 }
 
 export interface QualityProfileQualityItem {

@@ -18,6 +18,7 @@ import { useEpisodeFile } from 'EpisodeFile/EpisodeFileProvider';
 import MediaInfo from 'EpisodeFile/MediaInfo';
 import { icons } from 'Helpers/Props';
 import { useSingleSeries } from 'Series/useSeries';
+import { useQualityProfile } from 'Settings/Profiles/Quality/useQualityProfiles';
 import MediaInfoModel from 'typings/MediaInfo';
 import formatBytes from 'Utilities/Number/formatBytes';
 import formatCustomFormatScore from 'Utilities/Number/formatCustomFormatScore';
@@ -90,11 +91,28 @@ function EpisodeRow({
     monitored: seriesMonitored,
     seriesType,
     alternateTitles = [],
+    qualityProfileId,
   } = useSingleSeries(seriesId)!;
   const episodeFile = useEpisodeFile(episodeFileId);
 
   const customFormats = episodeFile?.customFormats ?? [];
   const customFormatScore = episodeFile?.customFormatScore ?? 0;
+
+  // Fork: formats flagged "Always Show" in the series' quality profile are
+  // rendered as tags next to the episode title when the file matches them.
+  // The Formats column already lists every matching format, so the tags
+  // step aside while that column is visible.
+  const qualityProfile = useQualityProfile(qualityProfileId);
+  const alwaysShowFormatIds =
+    qualityProfile?.formatItems
+      .filter((item) => item.alwaysShow)
+      .map((item) => item.format) ?? [];
+  const alwaysShowFormats = customFormats.filter((format) =>
+    alwaysShowFormatIds.includes(format.id)
+  );
+  const isFormatsColumnVisible = columns.some(
+    (column) => column.name === 'customFormats' && column.isVisible
+  );
 
   const handleMonitorEpisodePress = useCallback(
     (monitored: boolean, options: { shiftKey: boolean }) => {
@@ -154,14 +172,22 @@ function EpisodeRow({
         if (name === 'title') {
           return (
             <TableRowCell key={name} className={styles.title}>
-              <EpisodeTitleLink
-                episodeId={id}
-                seriesId={seriesId}
-                episodeTitle={title}
-                episodeEntity="episodes"
-                finaleType={finaleType}
-                showOpenSeriesButton={false}
-              />
+              <div className={styles.titleContainer}>
+                <EpisodeTitleLink
+                  episodeId={id}
+                  seriesId={seriesId}
+                  episodeTitle={title}
+                  episodeEntity="episodes"
+                  finaleType={finaleType}
+                  showOpenSeriesButton={false}
+                />
+
+                {alwaysShowFormats.length > 0 && !isFormatsColumnVisible ? (
+                  <div className={styles.alwaysShowFormats}>
+                    <EpisodeFormats formats={alwaysShowFormats} />
+                  </div>
+                ) : null}
+              </div>
             </TableRowCell>
           );
         }

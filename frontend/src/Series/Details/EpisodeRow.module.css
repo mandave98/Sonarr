@@ -68,3 +68,14 @@
 
   width: 50px;
 }
+
+/* Fork: Always Show tags sit at the right edge of the title cell */
+.titleContainer {
+  display: flex;
+  align-items: center;
+}
+
+.alwaysShowFormats {
+  margin-left: auto;
+  padding-left: 10px;
+}

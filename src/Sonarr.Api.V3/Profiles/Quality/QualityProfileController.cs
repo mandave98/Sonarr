@@ -67,6 +67,9 @@ namespace Sonarr.Api.V3.Profiles.Quality
         {
             var model = resource.ToModel();
 
+            // Fork: keep stored Always Show flags for items the client omitted
+            model.PreserveOmittedAlwaysShow(resource, _profileService.Get(model.Id));
+
             _profileService.Update(model);
 
             return Accepted(model.Id);

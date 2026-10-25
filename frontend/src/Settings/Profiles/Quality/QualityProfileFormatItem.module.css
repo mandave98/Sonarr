@@ -49,3 +49,16 @@
   background-color: transparent;
   font-variant-numeric: tabular-nums;
 }
+
+/* Fork: Always Show column, aligned with the header cell */
+.alwaysShowContainer {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 16px;
+  width: 90px;
+}
+
+.alwaysShowInput {
+  composes: input from 'Components/Form/CheckInput.module.css';
+}

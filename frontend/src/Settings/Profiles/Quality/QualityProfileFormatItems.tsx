@@ -16,6 +16,10 @@ interface QualityProfileFormatItemsProps {
     formatId: number,
     score: number
   ) => void;
+  onQualityProfileFormatItemAlwaysShowChange: (
+    formatId: number,
+    alwaysShow: boolean
+  ) => void;
 }
 
 function QualityProfileFormatItems({
@@ -23,6 +27,7 @@ function QualityProfileFormatItems({
   errors = [],
   warnings = [],
   onQualityProfileFormatItemScoreChange,
+  onQualityProfileFormatItemAlwaysShowChange,
 }: QualityProfileFormatItemsProps) {
   const sortFormatItems = useDebounce(profileFormatItems, 1000);
 
@@ -69,6 +74,7 @@ function QualityProfileFormatItems({
   return (
     <div>
       <FormInputHelpText text={translate('CustomFormatHelpText')} />
+      <FormInputHelpText text={translate('CustomFormatAlwaysShowHelpText')} />
 
       {errors.map((error, index) => {
         return (
@@ -96,17 +102,22 @@ function QualityProfileFormatItems({
         <div className={styles.headerContainer}>
           <div className={styles.headerTitle}>{translate('CustomFormat')}</div>
           <div className={styles.headerScore}>{translate('Score')}</div>
+          <div className={styles.headerAlwaysShow}>
+            {translate('CustomFormatAlwaysShow')}
+          </div>
         </div>
 
         {order.map((index) => {
-          const { format, name, score } = profileFormatItems[index];
+          const { format, name, score, alwaysShow } = profileFormatItems[index];
           return (
             <QualityProfileFormatItem
               key={format}
               formatId={format}
               name={name}
               score={score}
+              alwaysShow={alwaysShow}
               onScoreChange={onQualityProfileFormatItemScoreChange}
+              onAlwaysShowChange={onQualityProfileFormatItemAlwaysShowChange}
             />
           );
         })}

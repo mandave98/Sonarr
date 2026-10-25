@@ -69,6 +69,9 @@ public class QualityProfileController : RestController<QualityProfileResource>
     {
         var model = resource.ToModel();
 
+        // Fork: keep stored Always Show flags for items the client omitted
+        model.PreserveOmittedAlwaysShow(resource, _profileService.Get(model.Id));
+
         _profileService.Update(model);
 
         return TypedAccepted(model.Id);

@@ -33,6 +33,9 @@ public class ProfileFormatItemResource : RestResource
     public int Format { get; set; }
     public string? Name { get; set; }
     public int Score { get; set; }
+
+    // Fork: nullable so clients that predate this field (e.g. Recyclarr) can omit it and keep the stored value
+    public bool? AlwaysShow { get; set; }
 }
 
 public static class ProfileResourceMapper
@@ -74,7 +77,8 @@ public static class ProfileResourceMapper
         {
             Format = model.Format.Id,
             Name = model.Format.Name,
-            Score = model.Score
+            Score = model.Score,
+            AlwaysShow = model.AlwaysShow
         };
     }
 
@@ -114,8 +118,34 @@ public static class ProfileResourceMapper
         return new ProfileFormatItem
         {
             Format = new CustomFormat { Id = resource.Format },
-            Score = resource.Score
+            Score = resource.Score,
+            AlwaysShow = resource.AlwaysShow ?? false
         };
+    }
+
+    // Fork: PUT payloads from clients that don't know about AlwaysShow omit it (null). Carry the stored
+    // value over for those items so a Recyclarr sync doesn't silently reset the flags to false.
+    public static void PreserveOmittedAlwaysShow(this QualityProfile model, QualityProfileResource resource, QualityProfile? stored)
+    {
+        var omittedFormatIds = resource.FormatItems
+            .Where(i => i.AlwaysShow == null)
+            .Select(i => i.Format)
+            .ToHashSet();
+
+        if (omittedFormatIds.Count == 0 || stored == null)
+        {
+            return;
+        }
+
+        var storedFlags = stored.FormatItems.ToDictionary(i => i.Format.Id, i => i.AlwaysShow);
+
+        foreach (var item in model.FormatItems)
+        {
+            if (omittedFormatIds.Contains(item.Format.Id) && storedFlags.TryGetValue(item.Format.Id, out var alwaysShow))
+            {
+                item.AlwaysShow = alwaysShow;
+            }
+        }
     }
 
     public static List<QualityProfileResource> ToResource(this IEnumerable<QualityProfile> models)

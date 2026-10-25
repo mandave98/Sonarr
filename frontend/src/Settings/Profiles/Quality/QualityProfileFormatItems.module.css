@@ -41,3 +41,10 @@
   font-family: var(--defaultFontFamily);
   line-height: 1.55;
 }
+
+/* Fork: Always Show header cell */
+.headerAlwaysShow {
+  flex-shrink: 0;
+  width: 90px;
+  text-align: center;
+}

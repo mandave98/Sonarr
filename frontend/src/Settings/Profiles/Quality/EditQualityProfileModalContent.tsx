@@ -315,6 +315,25 @@ function EditQualityProfileModalContent({
     [formatItems, updateValue]
   );
 
+  // Fork: toggles the Always Show flag on a custom format item
+  const handleFormatItemAlwaysShowChange = useCallback(
+    (formatId: number, alwaysShow: boolean) => {
+      const newFormatItems = formatItems.value.map((formatItem) => {
+        if (formatItem.format === formatId) {
+          return {
+            ...formatItem,
+            alwaysShow,
+          };
+        }
+
+        return formatItem;
+      });
+
+      updateValue('formatItems', newFormatItems);
+    },
+    [formatItems, updateValue]
+  );
+
   useEffect(() => {
     if (wasSaving && !isSaving && !saveError) {
       onModalClose();
@@ -478,6 +497,9 @@ function EditQualityProfileModalContent({
                     onQualityProfileFormatItemScoreChange={
                       handleFormatItemScoreChange
                     }
+                    onQualityProfileFormatItemAlwaysShowChange={
+                      handleFormatItemAlwaysShowChange
+                    }
                   />
                 </div>
               </div>
@@ -512,6 +534,9 @@ function EditQualityProfileModalContent({
                   warnings={formatItems.warnings}
                   onQualityProfileFormatItemScoreChange={
                     handleFormatItemScoreChange
+                  }
+                  onQualityProfileFormatItemAlwaysShowChange={
+                    handleFormatItemAlwaysShowChange
                   }
                 />
               </div>
