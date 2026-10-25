@@ -75,7 +75,11 @@ Search for `Fork:` comments in the source to find the touch points quickly.
 
 ## Branching model
 
-- `origin` is `mandave98/Sonarr`, `upstream` is `Sonarr/Sonarr`.
+- `origin` is `mandave98/Sonarr`, `upstream` is `Sonarr/Sonarr` (fetch only; its
+  push URL is disabled in the local clone). The fork on GitHub carries none of
+  upstream's v5 tags: `git fetch upstream --tags` is what gives a local clone
+  the tag names used below, and the workflow fetches them from upstream on its
+  own.
 - Upstream branches since the v5 beta: `develop` is v5, `v4-develop` is v4
   maintenance, `main` is the v4 stable line. v5 builds are tagged
   `v5.0.0.<build>` on `develop` and published as GitHub pre-releases; the
@@ -180,9 +184,13 @@ GitHub Container Registry as:
 
 It never touches `latest`; that tag still means the v4 build from the other
 branch, so the production compose file keeps working until we decide to move.
-The Sonarr version comes from `git describe` (the upstream tag the branch is
-based on) and the SDK version from `global.json`, so a rebase needs no edits to
-the workflow. The test stage runs first; a failing test blocks the push.
+The Sonarr version comes from `git describe` against upstream's v5 tags, which
+the workflow fetches from Sonarr/Sonarr itself because the fork does not carry
+them. It refuses to publish anything but a 5.x version: the first run on this
+branch resolved an ancient v4 tag the fork happened to have, built with that
+version stamped in, and pushed a mislabeled image. The SDK version comes from
+`global.json`. A rebase therefore needs no edits to the workflow. The test
+stage runs first; a failing test blocks the push.
 Upstream's own workflows only trigger on `develop` and `main`, so they stay
 idle on this branch.
 

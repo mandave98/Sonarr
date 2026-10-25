@@ -7,10 +7,16 @@ name: Fork image (v5)
 #
 # The v4 branch (feature/always-show-custom-formats) owns the `latest` tag
 # while v5 is in beta; this workflow never touches it. Point a compose file at
-# `:v5` to run the beta build. The Sonarr version is read from the newest
-# upstream tag reachable from the commit (git describe), and the .NET SDK
-# version from global.json, so a tag-to-tag rebase needs no edits here. The
-# test stage must pass before anything is pushed. See fork/README.md.
+# `:v5` to run the beta build.
+#
+# The Sonarr version is the newest upstream v5 tag reachable from the commit
+# (git describe). The fork does not mirror upstream's tags, so the workflow
+# fetches them from Sonarr/Sonarr itself (read-only) and refuses to publish
+# when the result is not a 5.x version: the first run on this branch resolved
+# an ancient v4 tag that the fork happened to carry and pushed a mislabeled
+# image. The .NET SDK version comes from global.json. A tag-to-tag rebase
+# therefore needs no edits here. The test stage must pass before anything is
+# pushed. See fork/README.md.
 #
 # No Actions cache, on purpose. On a cold runner the toolchain (Node image,
 # apt packages, .NET SDK) takes about 30 s to set up and restoring it from the
@@ -36,6 +42,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Major version this branch tracks; selects the upstream tags and guards the result.
+  SONARR_MAJOR: 5
   # LinuxServer publishes v5 beta builds as develop-version-<version>. Once v5
   # becomes their stable line the tag turns into version-<version>, like v4.
   LSIO_TAG_PREFIX: develop-version-
@@ -48,13 +56,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          # full history so git describe can find the upstream tag we sit on
+          # full history so git describe can walk back to the upstream tag we sit on
           fetch-depth: 0
 
       - name: Work out versions
         id: versions
         run: |
-          sonarr_version="$(git describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')"
+          # The fork carries none of upstream's v5 tags; fetch them read-only from upstream.
+          git fetch --no-tags https://github.com/Sonarr/Sonarr.git "refs/tags/v${SONARR_MAJOR}.*:refs/tags/v${SONARR_MAJOR}.*"
+          sonarr_version="$(git describe --tags --abbrev=0 --match "v${SONARR_MAJOR}.*" | sed 's/^v//')"
+          case "${sonarr_version}" in
+            ${SONARR_MAJOR}.*) ;;
+            *) echo "::error::git describe resolved '${sonarr_version}', expected a ${SONARR_MAJOR}.x upstream tag"; exit 1 ;;
+          esac
           sdk_version="$(jq -r .sdk.version global.json)"
           echo "sonarr=${sonarr_version}" >> "$GITHUB_OUTPUT"
           echo "sdk=${sdk_version}" >> "$GITHUB_OUTPUT"
