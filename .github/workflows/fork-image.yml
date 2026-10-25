@@ -1,0 +1,98 @@
+name: Fork image (v5)
+
+# Builds fork/Dockerfile and publishes it to GitHub Container Registry as
+#   ghcr.io/<owner>/sonarr-fork:<sonarr version>
+#   ghcr.io/<owner>/sonarr-fork:<sonarr version>-<short sha>
+#   ghcr.io/<owner>/sonarr-fork:v5
+#
+# The v4 branch (feature/always-show-custom-formats) owns the `latest` tag
+# while v5 is in beta; this workflow never touches it. Point a compose file at
+# `:v5` to run the beta build. The Sonarr version is read from the newest
+# upstream tag reachable from the commit (git describe), and the .NET SDK
+# version from global.json, so a tag-to-tag rebase needs no edits here. The
+# test stage must pass before anything is pushed. See fork/README.md.
+#
+# No Actions cache, on purpose. On a cold runner the toolchain (Node image,
+# apt packages, .NET SDK) takes about 30 s to set up and restoring it from the
+# cache took about 20 s, while exporting the cache took minutes per run and
+# added a fresh multi-GB build layer per commit. The publish step reuses the
+# build stage from the builder's own state within the job, so nothing
+# compiles twice.
+
+on:
+  push:
+    branches:
+      - v5/always-show-custom-formats
+    paths-ignore:
+      - '**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: fork-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # LinuxServer publishes v5 beta builds as develop-version-<version>. Once v5
+  # becomes their stable line the tag turns into version-<version>, like v4.
+  LSIO_TAG_PREFIX: develop-version-
+  # Floating tag for this branch. Not `latest`: that still means the v4 build.
+  FLOATING_TAG: v5
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # full history so git describe can find the upstream tag we sit on
+          fetch-depth: 0
+
+      - name: Work out versions
+        id: versions
+        run: |
+          sonarr_version="$(git describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')"
+          sdk_version="$(jq -r .sdk.version global.json)"
+          echo "sonarr=${sonarr_version}" >> "$GITHUB_OUTPUT"
+          echo "sdk=${sdk_version}" >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA::9}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/sonarr-fork" >> "$GITHUB_OUTPUT"
+          echo "Sonarr ${sonarr_version}, SDK ${sdk_version}, fork ${GITHUB_SHA::9}"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Unit tests (test stage)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: fork/Dockerfile
+          target: test
+          push: false
+          build-args: |
+            SONARR_VERSION=${{ steps.versions.outputs.sonarr }}
+            DOTNET_SDK_VERSION=${{ steps.versions.outputs.sdk }}
+
+      - name: Build and publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: fork/Dockerfile
+          push: true
+          build-args: |
+            SONARR_VERSION=${{ steps.versions.outputs.sonarr }}
+            DOTNET_SDK_VERSION=${{ steps.versions.outputs.sdk }}
+            BASE_IMAGE=ghcr.io/linuxserver/sonarr:${{ env.LSIO_TAG_PREFIX }}${{ steps.versions.outputs.sonarr }}
+            FORK_VERSION=${{ steps.versions.outputs.sha }}
+          tags: |
+            ${{ steps.versions.outputs.image }}:${{ steps.versions.outputs.sonarr }}
+            ${{ steps.versions.outputs.image }}:${{ steps.versions.outputs.sonarr }}-${{ steps.versions.outputs.sha }}
+            ${{ steps.versions.outputs.image }}:${{ env.FLOATING_TAG }}
