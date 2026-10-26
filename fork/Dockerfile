@@ -4,14 +4,14 @@
 # Sonarr image, so PUID/PGID handling, s6 init and the docker update lock all keep
 # working exactly as they do upstream. See fork/README.md for the full workflow.
 #
-#   docker build -f fork/Dockerfile -t sonarr-fork:5.0.0.2785 .
+#   docker build -f fork/Dockerfile -t sonarr-fork:5.0.0.2800 .
 #
 # BASE_IMAGE must be the LinuxServer image for the same Sonarr version this branch
 # is based on, otherwise the UI/database expectations drift from the binaries.
 # While v5 is in beta those images carry develop tags (develop-version-<version>);
 # once v5 is LinuxServer's stable line they become version-<version> like v4.
 
-ARG BASE_IMAGE=ghcr.io/linuxserver/sonarr:develop-version-5.0.0.2785
+ARG BASE_IMAGE=ghcr.io/linuxserver/sonarr:develop-version-5.0.0.2800
 
 # ---------------------------------------------------------------------------
 # Build stage. package.json pins Node 24.19.0 and Yarn 1.22.22 through volta,
@@ -22,7 +22,7 @@ ARG BASE_IMAGE=ghcr.io/linuxserver/sonarr:develop-version-5.0.0.2785
 # ---------------------------------------------------------------------------
 FROM node:24.19.0-bookworm AS build
 
-ARG DOTNET_SDK_VERSION=10.0.402
+ARG DOTNET_SDK_VERSION=10.0.403
 ENV DOTNET_ROOT=/usr/share/dotnet \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_NOLOGO=1 \
@@ -41,7 +41,7 @@ COPY . .
 
 # Stamped into the assemblies and shown in System > Status. Keep it equal to the
 # upstream version the branch is based on so version checks behave normally.
-ARG SONARR_VERSION=5.0.0.2785
+ARG SONARR_VERSION=5.0.0.2800
 ARG BRANCH=develop
 ENV SONARR_VERSION=${SONARR_VERSION} \
     BRANCH=${BRANCH}
@@ -73,7 +73,7 @@ RUN dotnet test Sonarr.Core.Test.dll Sonarr.Api.Test.dll --filter "${TEST_FILTER
 # ---------------------------------------------------------------------------
 FROM ${BASE_IMAGE}
 
-ARG SONARR_VERSION=5.0.0.2785
+ARG SONARR_VERSION=5.0.0.2800
 ARG BRANCH=develop
 ARG FORK_VERSION=local
 

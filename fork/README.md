@@ -100,9 +100,9 @@ Search for `Fork:` comments in the source to find the touch points quickly.
   numbers (`v4.7.x`, `v5.2x.x`, `v6.x.x`) that point at Radarr commits. Ignore
   them; only `v5.0.0.*` (and whatever v5.x follows) are Sonarr's. `git
   describe` is unaffected because those commits are not in our history.
-- This branch, `v5/always-show-custom-formats`, is based on tag `v5.0.0.2785`,
-  the first public v5 beta (the tip of `upstream/develop` on 2026-10-24).
-  LinuxServer ships that version as `develop-version-5.0.0.2785` (also
+- This branch, `v5/always-show-custom-formats`, is based on tag `v5.0.0.2800`,
+  a v5 beta build (the tip of `upstream/develop` on 2026-10-25).
+  LinuxServer ships that version as `develop-version-5.0.0.2800` (also
   `develop`), so the branch is again "the binary we run plus the patch".
 - The v4 branch `feature/always-show-custom-formats` is untouched and keeps
   publishing `latest`. Once v5 runs for real we can retire it.
@@ -112,13 +112,13 @@ Moving to the next v5 build, tag to tag:
 ```bash
 git fetch upstream --tags
 git checkout v5/always-show-custom-formats
-git rebase --onto v5.0.0.NNNN v5.0.0.2785
+git rebase --onto v5.0.0.NNNN v5.0.0.2800
 # fix conflicts if any (see hotspots below), then
 git push --force-with-lease origin v5/always-show-custom-formats
 ```
 
 Then update the version defaults in `fork/Dockerfile` (`BASE_IMAGE`,
-`SONARR_VERSION`) and `fork/build-image.sh`, replace `5.0.0.2785` in this
+`SONARR_VERSION`) and `fork/build-image.sh`, replace `5.0.0.2800` in this
 file, rebuild, and redeploy. When LinuxServer moves v5 to their stable
 `latest`, switch `LSIO_TAG_PREFIX` in the workflow from `develop-version-` to
 `version-` and the `BASE_IMAGE` defaults likewise.
@@ -135,7 +135,7 @@ them are a few lines to re-apply.
 Requirements: Docker with BuildKit. No local .NET or Node needed; the build
 stage uses `node:24.19.0-bookworm` (Node 24.19.0 and Yarn 1.22.22, the volta
 pins in `package.json`) and installs the exact .NET SDK that `global.json` pins
-(10.0.402 at this tag).
+(10.0.403 at this tag).
 
 Upstream dropped `build.sh` in v5; its CI builds through
 `.github/actions/build/action.yml` plus the frontend job in
@@ -153,8 +153,8 @@ crashed on startup because the self-contained publish shipped a different
 read it from there automatically.
 
 ```bash
-fork/build-image.sh                       # -> sonarr-fork:5.0.0.2785
-SONARR_VERSION=5.0.0.2800 fork/build-image.sh
+fork/build-image.sh                       # -> sonarr-fork:5.0.0.2800
+SONARR_VERSION=5.0.0.NNNN fork/build-image.sh
 ```
 
 What it does:
@@ -212,8 +212,8 @@ the tags pull anonymously from any host.
 To push a locally built image by hand instead:
 
 ```bash
-docker tag sonarr-fork:5.0.0.2785 ghcr.io/mandave98/sonarr-fork:5.0.0.2785
-docker push ghcr.io/mandave98/sonarr-fork:5.0.0.2785   # after docker login ghcr.io
+docker tag sonarr-fork:5.0.0.2800 ghcr.io/mandave98/sonarr-fork:5.0.0.2800
+docker push ghcr.io/mandave98/sonarr-fork:5.0.0.2800   # after docker login ghcr.io
 ```
 
 ## Deploying

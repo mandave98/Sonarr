@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Build the fork image from the current checkout.
 #
-#   fork/build-image.sh                # -> sonarr-fork:5.0.0.2785
-#   SONARR_VERSION=5.0.0.2800 fork/build-image.sh
+#   fork/build-image.sh                # -> sonarr-fork:5.0.0.2800
+#   SONARR_VERSION=5.0.0.NNNN fork/build-image.sh
 #
 # Override BASE_IMAGE / BRANCH / TAG / FORK_VERSION through the environment if
 # needed. The .NET SDK version is read from global.json.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SONARR_VERSION="${SONARR_VERSION:-5.0.0.2785}"
+SONARR_VERSION="${SONARR_VERSION:-5.0.0.2800}"
 # LinuxServer tags v5 beta builds develop-version-<version>; stable lines use version-<version>.
 BASE_IMAGE="${BASE_IMAGE:-ghcr.io/linuxserver/sonarr:develop-version-${SONARR_VERSION}}"
 BRANCH="${BRANCH:-develop}"
