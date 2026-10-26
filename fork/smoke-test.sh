@@ -46,6 +46,13 @@ expect() {
 echo "== system status =="
 api "${BASE}/api/v3/system/status" | json "o.version + ' | ' + o.packageVersion + ' | ' + o.packageAuthor + ' | ' + o.packageUpdateMechanism"
 
+# Sonarr runs as abc, not root. A build that ships ffprobe without the execute
+# bit for group/other boots fine and then blocks every import with "Unable to
+# determine if file is a sample"; the first 5.0.0.2785 image did exactly that.
+echo "== ffprobe runs as the container user =="
+docker cp "$(dirname "$0")/../src/NzbDrone.Core.Test/Files/Media/H264_sample.mp4" "${NAME}:/tmp/sample.mp4"
+echo "   duration via ffprobe as abc: $(docker exec "$NAME" s6-setuidgid abc /app/sonarr/bin/ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/sample.mp4)"
+
 echo "== translations served =="
 api "${BASE}/api/v3/localization" | json "JSON.stringify({a:o.strings.CustomFormatAlwaysShow, b:o.strings.CustomFormatAlwaysShowHelpText})"
 
