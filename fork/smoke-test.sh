@@ -5,14 +5,17 @@
 #
 #   fork/smoke-test.sh sonarr-fork:5.0.0.2785
 #
-# Needs docker, curl and node (for JSON handling). On Windows Git Bash set
-# MSYS_NO_PATHCONV=1 and SMOKE_TMP to a Windows-style directory
-# (curl.exe cannot open /tmp paths), e.g.
+# The Fork image (v5) workflow runs this against the freshly built image before
+# anything is pushed. Needs docker, curl and node (for JSON handling). On
+# Windows Git Bash set MSYS_NO_PATHCONV=1 and SMOKE_TMP to a Windows-style
+# directory (curl.exe cannot open /tmp paths), e.g.
 #   MSYS_NO_PATHCONV=1 SMOKE_TMP=C:/Temp fork/smoke-test.sh sonarr-fork:5.0.0.2785
+# SMOKE_NAME and SMOKE_PORT override the container name and host port so two
+# runs can coexist on one machine.
 set -euo pipefail
 IMAGE="${1:?image}"
-NAME=sonarr-fork-smoke
-PORT=18989
+NAME="${SMOKE_NAME:-sonarr-fork-smoke}"
+PORT="${SMOKE_PORT:-18989}"
 BASE="http://localhost:${PORT}"
 TMPD="${SMOKE_TMP:-/tmp}"
 
@@ -52,6 +55,13 @@ api "${BASE}/api/v3/system/status" | json "o.version + ' | ' + o.packageVersion 
 echo "== ffprobe runs as the container user =="
 docker cp "$(dirname "$0")/../src/NzbDrone.Core.Test/Files/Media/H264_sample.mp4" "${NAME}:/tmp/sample.mp4"
 echo "   duration via ffprobe as abc: $(docker exec "$NAME" s6-setuidgid abc /app/sonarr/bin/ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/sample.mp4)"
+
+# fork/build.sh normalizes modes to match upstream's tarball: nothing may be
+# executable for the owner only (that is how the 0744 ffprobe slipped through).
+echo "== no owner-only executable files in the package =="
+odd=$(docker exec "$NAME" find /app/sonarr/bin -type f -perm -u=x ! -perm -o=x)
+[ -z "$odd" ] || { echo "$odd"; echo "FAIL"; exit 1; }
+echo "   executables: $(docker exec "$NAME" find /app/sonarr/bin -type f -perm -o=x | tr '\n' ' ')"
 
 echo "== translations served =="
 api "${BASE}/api/v3/localization" | json "JSON.stringify({a:o.strings.CustomFormatAlwaysShow, b:o.strings.CustomFormatAlwaysShowHelpText})"

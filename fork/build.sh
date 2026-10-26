@@ -47,10 +47,14 @@ cp LICENSE.md "${folder}"
 # Linux packages carry neither the Windows service helpers nor Sonarr.Windows.
 rm -f "${folder}"/ServiceUninstall.* "${folder}"/ServiceInstall.* "${folder}"/Sonarr.Windows.*
 
-# ffprobe comes out of the publish as 0744 and the container runs Sonarr as the
-# unprivileged abc user, which then cannot execute it: the app boots normally
-# and rejects every import with "Unable to determine if file is a sample".
-# Upstream's .github/actions/package/package.sh fixes the same three names.
+# The publish leaves most files 0744 and ffprobe without the execute bit for
+# group/other. The container runs Sonarr as the unprivileged abc user, which
+# then cannot start ffprobe: the app boots normally and rejects every import
+# with "Unable to determine if file is a sample". Normalize to what upstream's
+# tarball ships: 0644 everywhere, then a+x on the three names that
+# .github/actions/package/package.sh fixes (-name Sonarr also matches the
+# package folder itself, harmlessly).
+find "${folder}" -type f -exec chmod 644 {} +
 find "${folder}" -name ffprobe -exec chmod a+x {} \;
 find "${folder}" -name Sonarr -exec chmod a+x {} \;
 find "${folder}" -name Sonarr.Update -exec chmod a+x {} \;

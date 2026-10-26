@@ -15,14 +15,15 @@ name: Fork image (v5)
 # when the result is not a 5.x version: the first run on this branch resolved
 # an ancient v4 tag that the fork happened to carry and pushed a mislabeled
 # image. The .NET SDK version comes from global.json. A tag-to-tag rebase
-# therefore needs no edits here. The test stage must pass before anything is
-# pushed. See fork/README.md.
+# therefore needs no edits here. The test stage and the smoke test (the image
+# run the way production runs it, Sonarr as abc, both APIs driven) must pass
+# before anything is pushed. See fork/README.md.
 #
 # No Actions cache, on purpose. On a cold runner the toolchain (Node image,
 # apt packages, .NET SDK) takes about 30 s to set up and restoring it from the
 # cache took about 20 s, while exporting the cache took minutes per run and
-# added a fresh multi-GB build layer per commit. The publish step reuses the
-# build stage from the builder's own state within the job, so nothing
+# added a fresh multi-GB build layer per commit. The image and publish steps
+# reuse the stages from the builder's own state within the job, so nothing
 # compiles twice.
 
 on:
@@ -95,7 +96,26 @@ jobs:
             SONARR_VERSION=${{ steps.versions.outputs.sonarr }}
             DOTNET_SDK_VERSION=${{ steps.versions.outputs.sdk }}
 
-      - name: Build and publish
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: fork/Dockerfile
+          load: true
+          tags: sonarr-fork:ci
+          build-args: |
+            SONARR_VERSION=${{ steps.versions.outputs.sonarr }}
+            DOTNET_SDK_VERSION=${{ steps.versions.outputs.sdk }}
+            BASE_IMAGE=ghcr.io/linuxserver/sonarr:${{ env.LSIO_TAG_PREFIX }}${{ steps.versions.outputs.sonarr }}
+            FORK_VERSION=${{ steps.versions.outputs.sha }}
+
+      # Boots the image as production does (Sonarr running as abc), runs ffprobe
+      # as that user and drives both APIs. The 5.0.0.2785 image that shipped
+      # ffprobe without the execute bit would have failed here, not in production.
+      - name: Smoke test
+        run: fork/smoke-test.sh sonarr-fork:ci
+
+      - name: Publish
         uses: docker/build-push-action@v6
         with:
           context: .
